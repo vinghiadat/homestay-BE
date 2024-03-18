@@ -26,16 +26,13 @@ public class Registration {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     @ManyToOne
     @JoinColumn(name = "event_id", nullable = false)
     private Event event;
-    private LocalDate registrationDate;
-    private Boolean status;
-
+    private LocalDate registrationDate = LocalDate.now();
+    private Integer status = 1;
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User users;
-
     // Getters and setters
 }

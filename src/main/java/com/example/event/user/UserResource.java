@@ -1,5 +1,7 @@
 package com.example.event.user;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,9 +17,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.event.authentication.AuthResponseDTO;
+import com.example.event.authentication.AuthenticatedUserDTO;
 import com.example.event.message.SuccessMessage;
 
 import jakarta.validation.Valid;
@@ -35,20 +39,31 @@ public class UserResource {
     }
 
     @PostMapping("register")
-    public ResponseEntity<SuccessMessage> register( @Valid @RequestBody User user) {
-        userService.register(user);
-        return ResponseEntity.status(HttpStatus.CREATED).body(new SuccessMessage("Account successfully created",HttpStatusCode.valueOf(201).value()));
-    }
-    @GetMapping("")
-    public ResponseEntity<?> hello( ) {
-        
-        return ResponseEntity.status(HttpStatus.CREATED).body(new SuccessMessage("Account successfully created",HttpStatusCode.valueOf(201).value()));
+    public ResponseEntity<SuccessMessage> register( @Valid @RequestBody UserRequestDTO userRequestDTO) {
+        User user = new User();
+        user.setAddress(userRequestDTO.getAddress());
+        user.setEmail(userRequestDTO.getEmail());
+        user.setFullname(userRequestDTO.getFullname());
+        user.setPassword(userRequestDTO.getPassword());
+        user.setUsername(userRequestDTO.getUsername());
+        user.setPhoneNumber(userRequestDTO.getPhoneNumber());
+        // Kiểm tra nếu roleNames không được cung cấp, mặc định sử dụng vai trò 'CUSTOMER
+        List<String> roleNames = new ArrayList<>();
+        roleNames = userRequestDTO.getRoleNames();
+        if(roleNames.isEmpty()) {
+            roleNames = Collections.singletonList("USER");
+        }
+        userService.register(user,roleNames);
+        return ResponseEntity.status(HttpStatus.CREATED).body(new SuccessMessage("Bạn đã đăng ký thành công",HttpStatusCode.valueOf(201).value()));
     }
 
     @PostMapping("login")
-    public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody User user){ 
-        String token = userService.login(user);
-        return ResponseEntity.status(HttpStatus.OK).body(new AuthResponseDTO(token));
+    public ResponseEntity<AuthenticatedUserDTO> login(@Valid @RequestBody UserLoginDTO userRequestDTO){ 
+        User user = new User();
+        user.setPassword(userRequestDTO.getPassword());
+        user.setUsername(userRequestDTO.getUsername());
+        AuthenticatedUserDTO authenticatedUserDTO = userService.login(user);
+        return ResponseEntity.status(HttpStatus.OK).body(authenticatedUserDTO);
     }
 
     @GetMapping("role/{username}")

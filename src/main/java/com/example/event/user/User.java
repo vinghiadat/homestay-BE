@@ -34,17 +34,11 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    @NotBlank(message = "Tài khoản không được để trống")
     private String username;
-    @NotBlank(message = "Mật khẩu không được để trống")
     private String password;
-    @NotBlank(message = "Họ tên không được để trống")
     private String fullname;
-    @NotBlank(message = "Địa chỉ không được để trống")
     private String address;
-    @NotBlank(message = "Số điện thoại không được để trống")
     private String phoneNumber;
-    @NotBlank(message = "Email không được để trống")
     private String email;
     @ManyToMany(fetch = FetchType.EAGER,cascade = CascadeType.ALL) //EAGER tải toàn bộ dữ liệu cùng lúc của bảng khóa ngoại, CascadeType.ALL lan truyền sự kiện giữa Parent Table and Child Table
     @JoinTable(name = "user_role"

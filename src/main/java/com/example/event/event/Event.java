@@ -30,14 +30,14 @@ public class Event {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String eventName;
-    private String description;
     private LocalDateTime startDateTime;
     private LocalDateTime endDateTime;
-    private String address;
+    private String description;
     private Integer maxQuantity;
     private Boolean status = true;
     private int totalRegistered = 0; // Tổng số người đăng ký
     private int totalAttended = 0; // Tổng số người tham gia thực tế
+    private String img;
     @ManyToOne
     @JoinColumn(name = "organizer_id", nullable = false)
     private Organizer organizer;

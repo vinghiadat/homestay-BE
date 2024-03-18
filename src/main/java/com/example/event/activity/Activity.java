@@ -1,5 +1,6 @@
 package com.example.event.activity;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import com.example.event.event.Event;
@@ -27,6 +28,9 @@ public class Activity {
     @JoinColumn(name = "event_id", nullable = false)
     private Event event;
     private String activityName;
+    private String description;
+    private String img;
     private Integer priority;
+    private LocalDate date;
     // Getters and setters
 }
