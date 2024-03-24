@@ -1,6 +1,8 @@
 package com.example.event.user;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 import java.util.ArrayList;
@@ -20,6 +22,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import com.example.event.authentication.AuthenticatedUserDTO;
 import com.example.event.config.JwtGenerator;
@@ -53,7 +56,9 @@ public class UserService {
         this.authenticationManager = authenticationManager;
         this.jwtGenerator = jwtGenerator;
     }
-
+    public User getInfoByUsername(String username) {
+        return userRepository.findByUsername(username).orElseThrow(() -> new NotFoundException("Không tồn tại user có username: "+username));
+    }
     @Transactional //Đánh dấu là 1 giao dịch, nếu có vấn đề nó rollback hết
     public void register(User user,List<String> roleNames) {
 

@@ -25,7 +25,7 @@ import lombok.NoArgsConstructor;
 public class Registration {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
     @ManyToOne
     @JoinColumn(name = "event_id", nullable = false)
     private Event event;

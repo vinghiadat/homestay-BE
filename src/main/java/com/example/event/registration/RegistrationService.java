@@ -1,17 +1,25 @@
 package com.example.event.registration;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.example.event.event.Event;
 import com.example.event.event.EventRepository;
+import com.example.event.event.EventStatus;
 import com.example.event.exception.AlreadyExistsException;
 import com.example.event.exception.InvalidValueException;
 import com.example.event.exception.NotFoundException;
+import com.example.event.user.User;
 import com.example.event.user.UserRepository;
 
 import jakarta.transaction.Transactional;
@@ -55,8 +63,8 @@ public class RegistrationService {
     }
 
     // Phương thức kiểm tra xem user đã đăng ký sự kiện khác trong khoảng thời gian này chưa
-    private boolean isRegisteredInOtherEvent(Integer eventId,Integer userId, LocalDateTime startDateTime, LocalDateTime endDateTime) {
-        return registrationRepository.existsRegistrationWithSameDate(userId, eventId, startDateTime, endDateTime);
+    private Integer isRegisteredInOtherEvent(Integer userId, LocalDateTime startDateTime, LocalDateTime endDateTime) {
+        return registrationRepository.existsRegistrationWithSameDate(userId, startDateTime, endDateTime);
     }
 
     // Phương thức kiểm tra xem event còn chỗ trống không
@@ -69,39 +77,86 @@ public class RegistrationService {
         }return false;
     }
     //Phương thức kiểm tra xem event và user đã tồn tại trước đó chưa
-    private boolean isCheckEventIdAndUserId(Integer userId, Integer eventId) {
+    public boolean isCheckEventIdAndUserId(Integer userId, Integer eventId) {
         return registrationRepository.existsByUsersIdAndEventId(userId, eventId);
     }
 
     // Phương thức thực hiện đăng ký người dùng cho sự kiện
     @Transactional
     public void registerUserForEvent(Registration registration) {
+        //Lấy giá trị userId và eventId
+        Integer userId = registration.getUsers().getId();
+        Integer eventId = registration.getEvent().getId();
+        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Không tồn tại user với id: "+registration.getUsers().getId()));
+        Event event = eventRepository.findById(eventId).orElseThrow(() -> new NotFoundException("Không tồn tại sự kiện với id: "+registration.getEvent().getId()));
         // Viết code thực hiện đăng ký người dùng cho sự kiện
-        if(!isValidEvent(registration.getEvent().getId())) {
-            throw new NotFoundException("Không tồn tại sự kiện với id: "+registration.getEvent().getId());
+        if(!user.getStatus()) {
+            throw new InvalidValueException("Không đăng ký được sự kiện. Tài khoản của bạn đã bị khóa");
         }
-        if(!isValidUser(registration.getUsers().getId())) {
-            throw new NotFoundException("Không tồn tại user với id: "+registration.getUsers().getId());
-        }
-       
-        if(isCheckEventIdAndUserId(registration.getUsers().getId(), registration.getEvent().getId())) {
+        if(isCheckEventIdAndUserId(userId, eventId)) {
             throw new AlreadyExistsException("Bạn đã đăng ký sự kiện này trước đó rồi");
         }
-        if(!isEventActive(registration.getEvent().getId())) {
+        if(!isEventActive(eventId)) {
             throw new InvalidValueException("Sự kiện này đã bị đóng");
         }
-        if(isRegisteredInOtherEvent(registration.getUsers().getId(),registration.getEvent().getId(),registration.getEvent().getStartDateTime(),registration.getEvent().getEndDateTime())) {
+        if(!registration.getRegistrationDate().isBefore(event.getStartDateTime().toLocalDate())) {
+             // Trừ đi một ngày
+             System.out.println(event.getStartDateTime().toLocalDate().minusDays(1));
+            LocalDateTime ngayTruoc = event.getStartDateTime().minusDays(1);
+            // Lấy ngày, tháng và năm từ đối tượng LocalDateTime sau khi trừ đi
+            int ngay = ngayTruoc.getDayOfMonth();
+            int thang = ngayTruoc.getMonthValue();
+            int nam = ngayTruoc.getYear();
+            throw new InvalidValueException("Hạn cuối đăng ký sự kiện này là ngày: "+ngay+"/"+thang+"/"+nam+". Đã hết hạn đăng ký");
+        }
+        if(isRegisteredInOtherEvent(userId,event.getStartDateTime(),event.getEndDateTime())>0) {
             throw new AlreadyExistsException("Khoảng thời gian này bạn đã đăng ký sự kiện rồi");
         }
-        if(!hasRemainingCapacity(registration.getEvent().getId())) {
+        if(!hasRemainingCapacity(eventId)) {
             throw new AlreadyExistsException("Sự kiện này đã đủ số lượng rồi");
         }
-        Optional<Event> event = eventRepository.findById(registration.getEvent().getId());
-        if(event.isPresent()) {
-            event.get().setTotalRegistered(event.get().getTotalRegistered()+1);
-            eventRepository.save(event.get());
-        }
+        event.setTotalRegistered(event.getTotalRegistered()+1);
+        eventRepository.save(event);
         registrationRepository.save(registration);
         
+    }
+    public List<Event> getEventByUserId( Integer userId,
+     EventStatus eventStatus,
+       Integer organizerId,
+        String eventName) {
+            List<Registration> registrations = registrationRepository.findByUsersId(userId);
+            List<Event> events = new ArrayList<>();
+            for (Registration r : registrations) {
+                Event e = eventRepository.findById(r.getEvent().getId()).orElseThrow(() -> new NotFoundException("Không tồn tại event với id: "+r.getEvent().getId()));
+                events.add(e);
+            }
+            LocalDateTime now = LocalDateTime.now();
+            if(eventStatus !=null) {
+                switch (eventStatus) {
+                    case SAU:
+                        events.retainAll(eventRepository.findByStartDateTimeAfter(now));
+                        break;
+                        
+                    case DANG:
+                        events.retainAll(eventRepository.findByStartDateTimeBeforeAndEndDateTimeAfter(now, now));
+                        break;
+                    case TRUOC:
+                        events.retainAll(eventRepository.findByEndDateTimeBefore(now));
+                        break;
+                    default:
+                        break;
+                        
+                }
+            }
+            if (organizerId != null) {
+                events.removeIf(e ->  !e.getOrganizer().getId().equals(organizerId));
+            }
+            if (eventName != null && !eventName.isEmpty()) {
+                events.removeIf(e -> !e.getEventName().toLowerCase().contains(eventName.toLowerCase()));
+            }
+            return events;
+    }
+    public Registration getRegistrationByUserIdAndEventId(Integer userId,Integer eventId) {
+        return registrationRepository.findByUsersIdAndEventId(userId, eventId);
     }
 }

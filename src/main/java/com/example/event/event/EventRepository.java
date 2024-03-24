@@ -15,4 +15,5 @@ public interface EventRepository extends JpaRepository<Event,Integer> {
     List<Event> findByStartDateTimeBeforeAndEndDateTimeAfter(LocalDateTime startDateTime, LocalDateTime endDateTime);
     List<Event> findByEndDateTimeBefore(LocalDateTime endDateTime);
     List<Event> findTop5ByOrganizerIdAndIdNot(Integer organizerId, Integer eventId);
+    Boolean existsByOrganizerId(Integer organizerId);
 }

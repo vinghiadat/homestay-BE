@@ -13,10 +13,10 @@ import org.springframework.stereotype.Repository;
 public interface RegistrationRepository extends JpaRepository<Registration, Integer> {
     List<Registration> findByUsersId(Integer userId);
     Boolean existsByUsersIdAndEventId(Integer userId,Integer eventId);
-    @Query("SELECT COUNT(r) > 0 FROM Registration r " +
+    @Query("SELECT COUNT(r.id) FROM Registration r " +
             "WHERE r.users.id = :userId " +
             "AND r.event.startDateTime <= :newEndDateTime "+
-            "AND r.event.endDateTime >= :newStartDateTime "+
-            "AND (r.event.id <> :eventId)")
-    boolean existsRegistrationWithSameDate(@Param("userId") Integer userId,@Param("eventId") Integer eventId,@Param("newStartDateTime") LocalDateTime newStartDateTime, @Param("newEndDateTime") LocalDateTime newEndDateTime);
+            "AND r.event.endDateTime >= :newStartDateTime ")
+    Integer existsRegistrationWithSameDate(@Param("userId") Integer userId,@Param("newStartDateTime") LocalDateTime newStartDateTime, @Param("newEndDateTime") LocalDateTime newEndDateTime);
+    Registration findByUsersIdAndEventId(Integer userId, Integer eventId);
 }

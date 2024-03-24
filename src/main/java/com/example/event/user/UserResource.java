@@ -70,6 +70,10 @@ public class UserResource {
     public ResponseEntity<List<String>> getRoleByUsername(@PathVariable("username") String username) {
         return ResponseEntity.status(HttpStatus.OK).body(this.userService.getRoleByUsername(username));
     }
+    @GetMapping("/{username}")
+    public ResponseEntity<User> getInfoByUsername(@PathVariable("username") String username) {
+        return ResponseEntity.status(HttpStatus.OK).body(this.userService.getInfoByUsername(username));
+    }
     @PutMapping("change-password/{username}")
     public ResponseEntity<SuccessMessage> changePassword(
             @PathVariable("username") String username,
