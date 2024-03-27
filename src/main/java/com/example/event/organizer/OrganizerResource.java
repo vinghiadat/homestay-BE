@@ -28,8 +28,8 @@ public class OrganizerResource {
         return organizerService.getAllOrganizers();
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteOrganizerById(@PathVariable Integer id) {
+    @DeleteMapping("/{id}/user/{userId}")
+    public ResponseEntity<Void> deleteOrganizerById(@PathVariable Integer id,@PathVariable Integer userId) {
         organizerService.deleteOrganizerById(id);
         return ResponseEntity.noContent().build();
     }

@@ -10,15 +10,18 @@ import org.springframework.web.bind.annotation.RequestBody;
 import com.example.event.event.EventRepository;
 import com.example.event.exception.AlreadyExistsException;
 import com.example.event.exception.NotFoundException;
+import com.example.event.logger.LoggerService;
 
 @Service
 public class OrganizerService {
     private OrganizerRepository organizerRepository;
     private EventRepository eventRepository;
+    private LoggerService loggerService;
     @Autowired
-    public OrganizerService(OrganizerRepository organizerRepository, EventRepository eventRepository) {
+    public OrganizerService(OrganizerRepository organizerRepository, EventRepository eventRepository,LoggerService loggerService) {
         this.organizerRepository = organizerRepository;
         this.eventRepository = eventRepository;
+        this.loggerService = loggerService;
     }
     public List<Organizer> getAllOrganizers() {
         return organizerRepository.findAll();
@@ -27,6 +30,7 @@ public class OrganizerService {
         if(eventRepository.existsByOrganizerId(id)) {
             throw new AlreadyExistsException("Dữ liệu nhà tổ chức với id: "+id+" đang được sử dụng");
         }
+        loggerService.addLogger(null, null, null);
         organizerRepository.deleteById(id);
     }
     public void updateOrganizerById(Integer id,Organizer organizer) {
