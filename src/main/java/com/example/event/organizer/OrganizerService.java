@@ -72,12 +72,12 @@ public class OrganizerService {
         organizer2.setPhone(organizer.getPhone());
         organizerRepository.save(organizer2);
         //Viết logger
-        String content = "- Cập nhật nhà tổ chức: \"Tên nhà tổ chức: \""+organizer.getOrganizerName();
+        String content = "- Cập nhật nhà tổ chức: \"Tên nhà tổ chức: "+organizer.getOrganizerName()+"\"";
         addLogger(userId, content);
     }
     public void addOrganizer(Organizer organizer,Integer userId) {
         organizerRepository.save(organizer);
-        addLogger(userId, "- Thêm nhà tổ chức: \"Tên nhà tổ chức: \""+organizer.getOrganizerName());
+        addLogger(userId, "- Thêm nhà tổ chức: \"Tên nhà tổ chức: "+organizer.getOrganizerName()+"\"");
     }
     private void addLogger(Integer userId,String content) {
         User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Không tồn tại user "));
