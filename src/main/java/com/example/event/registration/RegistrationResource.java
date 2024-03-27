@@ -46,4 +46,12 @@ public class RegistrationResource {
     public ResponseEntity<Registration> getRegistrationByUserIdAndEventId(@PathVariable("userId") Integer userId,@PathVariable("eventId") Integer eventId) {
         return ResponseEntity.status(HttpStatus.OK).body(registrationService.getRegistrationByUserIdAndEventId(userId,eventId));
     }
+    //Hàm lấy đăng ký của khách hàng show cho admin xem , sắp xếp theo ngày đăng ký và đồng thời có thể lọc theo sự kiện hoặc tên khách hàng cụ thể
+    @GetMapping("order-by-registration-date/filter")
+    public ResponseEntity<List<RegistrationResponseDTO>> getAllRegistrationByFilter(
+        @RequestParam(required = false) Integer eventId,
+        @RequestParam(required = false) String userFullname
+    ) {
+        return ResponseEntity.status(HttpStatus.OK).body(registrationService.getAllRegistrationByFilter(eventId,userFullname));
+    }
 }

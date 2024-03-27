@@ -159,4 +159,46 @@ public class RegistrationService {
     public Registration getRegistrationByUserIdAndEventId(Integer userId,Integer eventId) {
         return registrationRepository.findByUsersIdAndEventId(userId, eventId);
     }
+    public List<RegistrationResponseDTO> getAllRegistrationByFilter(
+        Integer eventId,
+       String userFullname
+    ) {
+        //Lấy danh sách tổng ra
+       List<Registration> registrations = registrationRepository.findAll();
+       //Lấy user theo userFullname
+       if(userFullname!=null) {
+            List<User> users = userRepository.findByFullname(userFullname);
+            if(!users.isEmpty()) {
+                for (User user : users) {
+                    registrations.removeIf(r ->  r.getUsers().getId()!=user.getId());
+                }
+                
+            }
+       }
+       if(eventId!=null) {
+            registrations.removeIf(r -> r.getEvent().getId()!=eventId);
+       }
+       return convertListRegistrationToListRegistrationResponseDTO(registrations);
+       
+    }
+    private List<RegistrationResponseDTO> convertListRegistrationToListRegistrationResponseDTO(List<Registration> registrations) {
+        List<RegistrationResponseDTO> registrationResponseDTOs = new ArrayList<>();
+        for (Registration r : registrations) {
+            Event e = eventRepository.findById(r.getEvent().getId()).orElseThrow(() -> new NotFoundException("Không tồn tại sự kiện"));
+            User u = userRepository.findById(r.getUsers().getId()).orElseThrow(() -> new NotFoundException("Không tồn tại người dùng"));
+            RegistrationResponseDTO registrationResponseDTO = new RegistrationResponseDTO();
+            registrationResponseDTO.setId(r.getId());
+            registrationResponseDTO.setEventName(e.getEventName());
+            registrationResponseDTO.setStartDateTime(e.getStartDateTime());
+            registrationResponseDTO.setEndDateTime(e.getEndDateTime());
+            registrationResponseDTO.setImg(e.getImg());
+            registrationResponseDTO.setFullname(u.getFullname());
+            registrationResponseDTO.setAddress(u.getAddress());
+            registrationResponseDTO.setPhoneNumber(u.getPhoneNumber());
+            registrationResponseDTO.setEmail(u.getEmail());
+            registrationResponseDTO.setRegistrationDate(r.getRegistrationDate());
+            registrationResponseDTO.setStatus(r.getStatus());
+        }
+        return registrationResponseDTOs;
+    }
 }
