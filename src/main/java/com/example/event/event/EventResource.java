@@ -8,12 +8,17 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.event.organizer.Organizer;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("api/v1/event")
@@ -58,7 +63,18 @@ public class EventResource {
     public ResponseEntity<List<Event>> getEventsByOrganizerIdExcludingEventId(@RequestParam Integer organizerId, @RequestParam Integer eventId) {
         return ResponseEntity.status(HttpStatus.OK).body(eventService.getEventsByOrganizerIdExcludingEventId(organizerId, eventId));
     }
-
+    @PostMapping("/user/{userId}")
+    public ResponseEntity<Void> addEvent(@Valid @RequestBody Event event,
+    @PathVariable Integer userId) {
+        eventService.addEvent(event,userId);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+    //Cập nhật có 2 loại PUT & PATCH
+    @PatchMapping("/{id}/user/{userId}")
+    public ResponseEntity<Void> updateEventById(@PathVariable Integer id,@PathVariable Integer userId,@Valid @RequestBody Event event) {
+        eventService.updateEventById(id,userId,event);
+        return ResponseEntity.noContent().build();
+    }
     
 
 }
