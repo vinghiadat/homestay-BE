@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -73,6 +74,11 @@ public class EventResource {
     @PatchMapping("/{id}/user/{userId}")
     public ResponseEntity<Void> updateEventById(@PathVariable Integer id,@PathVariable Integer userId,@Valid @RequestBody Event event) {
         eventService.updateEventById(id,userId,event);
+        return ResponseEntity.noContent().build();
+    }
+    @DeleteMapping("/{id}/user/{userId}")
+    public ResponseEntity<Void> deleteEventById(@PathVariable Integer id,@PathVariable Integer userId) {
+        eventService.deleteEventById(id,userId);
         return ResponseEntity.noContent().build();
     }
     

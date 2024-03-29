@@ -12,11 +12,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.example.event.activity.Activity;
+import com.example.event.activity.ActivityRepository;
+import com.example.event.exception.AlreadyExistsException;
 import com.example.event.exception.InvalidValueException;
 import com.example.event.exception.NotFoundException;
 import com.example.event.logger.LoggerService;
 import com.example.event.organizer.Organizer;
 import com.example.event.organizer.OrganizerRepository;
+import com.example.event.registration.RegistrationRepository;
 import com.example.event.role.Role;
 import com.example.event.user.User;
 import com.example.event.user.UserRepository;
@@ -34,6 +38,10 @@ public class EventService {
     private UserRepository userRepository;
     @Autowired
     private LoggerService loggerService;
+    @Autowired
+    private RegistrationRepository registrationRepository;
+    @Autowired
+    private ActivityRepository activityRepository;
     public List<Event> getAllEvents() {
         return eventRepository.findAll();
     }
@@ -56,6 +64,42 @@ public class EventService {
             default:
                 return new ArrayList<>();
         }
+    }
+    public void deleteEventById(Integer id, Integer userId) {
+        if(registrationRepository.existsByEventId(id)) {
+            throw new AlreadyExistsException("Sự kiện này đang được sử dụng trong phần đăng ký sự kiện của khách hàng");
+        }
+        Event e = eventRepository.findById(id).orElseThrow(() -> new NotFoundException("Không tồn tại sự kiện với id "+id));
+        if(userId!=null) {
+            User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Không tồn tại user"));
+            String roleName = new String();
+            boolean lastElement = false;
+
+            // Lặp qua các role
+            for (int i = 0; i < user.getRoles().size(); i++) {
+                Role r = user.getRoles().get(i);
+                roleName += r.getName();
+                
+                // Kiểm tra nếu phần tử hiện tại là phần tử cuối cùng
+                if (i == user.getRoles().size() - 1) {
+                    lastElement = true;
+                }
+                
+                // Nếu không phải phần tử cuối cùng, thêm dấu phẩy
+                if (!lastElement) {
+                    roleName += " ,";
+                }
+            }
+            loggerService.addLogger(user, "- Xóa sự kiện: "+e.getEventName(),roleName);
+            organizerRepository.deleteById(id);
+            List<Activity> activities = activityRepository.findByEventId(id);
+            if(!activities.isEmpty()) {
+                for (Activity a : activities) {
+                    activityRepository.delete(a);
+                }
+            }
+        } 
+        
     }
     public List<Event> getEventsByStatusAndOrganizerIdAndName(
          EventStatus eventStatus,

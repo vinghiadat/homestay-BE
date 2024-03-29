@@ -12,6 +12,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -26,11 +28,14 @@ public class Activity {
     private Integer id;
     @ManyToOne
     @JoinColumn(name = "event_id", nullable = false)
+    @NotNull(message = "Không được bỏ trống sự kiện")
     private Event event;
+    @NotBlank(message = "Không được bỏ trống tên hoạt động")
     private String activityName;
+    @NotBlank(message = "Không được bỏ trống mô tả")
     private String description;
     private String img;
-    private Integer priority;
-    private LocalDate date;
+    @NotNull(message = "Không được bỏ trống giờ hoạt động")
+    private LocalDateTime dateTime;
     // Getters and setters
 }
