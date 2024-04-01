@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -81,4 +82,14 @@ public class UserResource {
         userService.changePassword(username, changePasswordRequest.getOldPassword(), changePasswordRequest.getNewPassword());
         return ResponseEntity.status(HttpStatus.OK).build();
     }
+    @GetMapping()
+    public ResponseEntity<List<User>> getAllUsers( @RequestParam(required = false) String username) {
+        return ResponseEntity.status(HttpStatus.OK).body(this.userService.getAllUsers(username));
+    }
+    @DeleteMapping("{id}/user/{userId}")
+    public ResponseEntity<Void> deleteById(@PathVariable Integer id,@PathVariable Integer userId) {
+        userService.deleteById(id,userId);
+        return ResponseEntity.noContent().build();
+    }   
+
 }

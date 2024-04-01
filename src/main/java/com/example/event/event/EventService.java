@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -43,7 +44,15 @@ public class EventService {
     @Autowired
     private ActivityRepository activityRepository;
     public List<Event> getAllEvents() {
-        return eventRepository.findAll();
+        Specification<Event> spec = (root, query, cb) -> {
+            query.orderBy(
+                cb.asc(root.get("organizer").get("id")),
+                cb.asc(root.get("startDateTime")),
+                cb.asc(root.get("endDateTime"))
+            );
+            return cb.conjunction();
+        };
+        return eventRepository.findAll(spec);
     }
     public List<Event> getEventsByOrganizerId(Integer organizerId) {
         return eventRepository.findByOrganizerId(organizerId);
@@ -91,7 +100,7 @@ public class EventService {
                 }
             }
             loggerService.addLogger(user, "- Xóa sự kiện: "+e.getEventName(),roleName);
-            organizerRepository.deleteById(id);
+            eventRepository.deleteById(id);
             List<Activity> activities = activityRepository.findByEventId(id);
             if(!activities.isEmpty()) {
                 for (Activity a : activities) {
@@ -107,7 +116,16 @@ public class EventService {
          String eventName
     ) {
         LocalDateTime now = LocalDateTime.now();
-        List<Event> events = eventRepository.findAll();
+        Specification<Event> spec = (root, query, cb) -> {
+            query.orderBy(
+                cb.asc(root.get("organizer").get("id")),
+                cb.asc(root.get("startDateTime")),
+                cb.asc(root.get("endDateTime"))
+            );
+            return cb.conjunction();
+        };
+        
+        List<Event> events = eventRepository.findAll(spec);
         if(eventStatus !=null) {
             switch (eventStatus) {
                 case SAU:
@@ -137,12 +155,21 @@ public class EventService {
         return eventRepository.findTop5ByOrganizerIdAndIdNot(organizerId, eventId);
     }
     @Transactional
-    public void addEvent( Event event,
+    public void addEvent( EventRequestDTO eventRequestDTO,
     Integer userId) {
+        Organizer o = organizerRepository.findById(eventRequestDTO.getOrganizerId()).orElseThrow(() -> new NotFoundException("Không tồn tại nhà tổ chức với id: "+eventRequestDTO.getOrganizerId()));
+        Event event = new Event();
+        event.setDescription(eventRequestDTO.getDescription());
+        event.setEndDateTime(eventRequestDTO.getEndDateTime());
+        event.setStartDateTime(eventRequestDTO.getStartDateTime());
+        event.setEventName(eventRequestDTO.getEventName());
+        event.setMaxQuantity(eventRequestDTO.getMaxQuantity());
+        event.setImg(eventRequestDTO.getImg());
+        event.setOrganizer(o);
         if(event.getStartDateTime().isAfter(event.getEndDateTime())) {
             throw new InvalidValueException("Ngày bắt đầu phải bé hơn ngày kết thúc");
         }
-        Organizer o = organizerRepository.findById(event.getOrganizer().getId()).orElseThrow(() -> new NotFoundException("Không tồn tại nhà tổ chức với id: "+event.getOrganizer().getId()));
+        
         if(event.getMaxQuantity()<=0) {
             throw new InvalidValueException("Số lượng tối đa phải >=0");
         }
@@ -172,11 +199,21 @@ public class EventService {
             }
         loggerService.addLogger(user,content,roleName);
     }
-    public void updateEventById(Integer id, Integer userId,Event event) {
+    public void updateEventById(Integer id, Integer userId,EventRequestDTO eventRequestDTO) {
+        Organizer o = organizerRepository.findById(eventRequestDTO.getOrganizerId()).orElseThrow(() -> new NotFoundException("Không tồn tại nhà tổ chức với id: "+eventRequestDTO.getOrganizerId()));
+        Event event = new Event();
+        event.setDescription(eventRequestDTO.getDescription());
+        event.setEndDateTime(eventRequestDTO.getEndDateTime());
+        event.setStartDateTime(eventRequestDTO.getStartDateTime());
+        event.setEventName(eventRequestDTO.getEventName());
+        event.setMaxQuantity(eventRequestDTO.getMaxQuantity());
+        event.setImg(eventRequestDTO.getImg());
+        event.setOrganizer(o);
+        event.setStatus(eventRequestDTO.getStatus());
         if(event.getStartDateTime().isAfter(event.getEndDateTime())) {
             throw new InvalidValueException("Ngày bắt đầu phải bé hơn ngày kết thúc");
         }
-        Organizer o = organizerRepository.findById(event.getOrganizer().getId()).orElseThrow(() -> new NotFoundException("Không tồn tại nhà tổ chức với id: "+event.getOrganizer().getId()));
+        
         if(event.getMaxQuantity()<=0) {
             throw new InvalidValueException("Số lượng tối đa phải >=0");
         }

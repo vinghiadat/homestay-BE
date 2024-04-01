@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.example.event.role.Role;
+
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Integer> {
@@ -19,5 +21,6 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     @Query("SELECT r.name FROM User u JOIN u.roles r WHERE u.username = :username")
     List<String> findRoleNamesByUsername(@Param("username") String username);
     List<User> findByFullname(String fullname);
+    Boolean existsByRolesContaining(Role role);
     
 }

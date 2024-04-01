@@ -29,14 +29,17 @@ public class OrganizerService {
         this.loggerService = loggerService;
         this.userRepository = userRepository;
     }
-    public List<Organizer> getAllOrganizers() {
-        return organizerRepository.findAll();
+    public List<Organizer> getAllOrganizers(String organizerName) {
+        List<Organizer> organizers = organizerRepository.findAll();
+        organizers.removeIf((o) -> !o.getOrganizerName().contains(organizerName));
+        return organizers;
     }
     public void deleteOrganizerById(Integer id, Integer userId) {
-        if(eventRepository.existsByOrganizerId(id)) {
-            throw new AlreadyExistsException("Dữ liệu nhà tổ chức với id: "+id+" đang được sử dụng");
-        }
+        
         Organizer o = organizerRepository.findById(id).orElseThrow(() -> new NotFoundException("Không tồn tại nhà tổ chức với id "+id));
+        if(eventRepository.existsByOrganizerId(id)) {
+            throw new AlreadyExistsException("Dữ liệu nhà tổ chức \""+o.getOrganizerName()+"\" đang được sử dụng");
+        }
         if(userId!=null) {
             User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Không tồn tại user"));
             String roleName = new String();
@@ -100,5 +103,8 @@ public class OrganizerService {
                 }
             }
         loggerService.addLogger(user,content,roleName);
+    }
+    public Organizer getInfoById(Integer id) {
+        return organizerRepository.findById(id).orElseThrow(() -> new NotFoundException("Không tồn tại nhà tổ chức với id: "+id));
     }
 }

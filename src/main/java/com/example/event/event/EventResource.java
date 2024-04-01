@@ -65,15 +65,16 @@ public class EventResource {
         return ResponseEntity.status(HttpStatus.OK).body(eventService.getEventsByOrganizerIdExcludingEventId(organizerId, eventId));
     }
     @PostMapping("/user/{userId}")
-    public ResponseEntity<Void> addEvent(@Valid @RequestBody Event event,
+    public ResponseEntity<Void> addEvent(@Valid @RequestBody EventRequestDTO eventRequestDTO,
     @PathVariable Integer userId) {
-        eventService.addEvent(event,userId);
+        
+        eventService.addEvent(eventRequestDTO,userId);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
     //Cập nhật có 2 loại PUT & PATCH
     @PatchMapping("/{id}/user/{userId}")
-    public ResponseEntity<Void> updateEventById(@PathVariable Integer id,@PathVariable Integer userId,@Valid @RequestBody Event event) {
-        eventService.updateEventById(id,userId,event);
+    public ResponseEntity<Void> updateEventById(@PathVariable Integer id,@PathVariable Integer userId,@Valid @RequestBody EventRequestDTO eventRequestDTO) {
+        eventService.updateEventById(id,userId,eventRequestDTO);
         return ResponseEntity.noContent().build();
     }
     @DeleteMapping("/{id}/user/{userId}")

@@ -87,6 +87,10 @@ public class UserService {
     }
 
     public AuthenticatedUserDTO login(User user) {
+        User u = userRepository.findByUsername(user.getUsername()).orElseThrow(() -> new NotFoundException("Không tồn tại tài khoản này"));
+        if(!u.getStatus()) {
+            throw new InvalidValueException("Tài khoản đã bị khóa");
+        }
         Authentication authentication = authenticationManager
             .authenticate(new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -124,6 +128,16 @@ public class UserService {
 
         // Save the updated user with the new password
         userRepository.save(existingUser);
+    }
+
+    public List<User> getAllUsers(String username) {
+        List<User> users = userRepository.findAll();
+        users.removeIf((u) -> !(u.getFullname().contains(username) || u.getUsername().contains(username) ));
+        return users;
+    }
+    @Transactional
+    public void deleteById(Integer id,Integer userId) {
+
     }
 
 }

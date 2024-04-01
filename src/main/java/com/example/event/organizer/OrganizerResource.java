@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
@@ -27,8 +28,12 @@ public class OrganizerResource {
     private OrganizerService organizerService;
 
     @GetMapping()
-    public List<Organizer> getAllOrganizers() {
-        return organizerService.getAllOrganizers();
+    public ResponseEntity<List<Organizer>> getAllOrganizers(@RequestParam(required = false) String organizerName) {
+        return ResponseEntity.status(HttpStatus.OK).body(organizerService.getAllOrganizers(organizerName));
+    }
+    @GetMapping("{id}")
+    public ResponseEntity<Organizer> getInfoById(@PathVariable Integer id) {
+        return ResponseEntity.status(HttpStatus.OK).body(organizerService.getInfoById(id));
     }
 
     @PostMapping("/user/{userId}")

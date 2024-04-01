@@ -30,7 +30,7 @@ public class Registration {
     @JoinColumn(name = "event_id", nullable = false)
     private Event event;
     private LocalDate registrationDate = LocalDate.now();
-    private Integer status = 1;
+    private Integer status = 0;
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User users;
