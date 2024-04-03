@@ -29,6 +29,7 @@ import com.example.event.config.JwtGenerator;
 import com.example.event.exception.AlreadyExistsException;
 import com.example.event.exception.InvalidValueException;
 import com.example.event.exception.NotFoundException;
+import com.example.event.logger.LoggerService;
 import com.example.event.role.Role;
 import com.example.event.role.RoleRepository;
 
@@ -47,14 +48,17 @@ public class UserService {
 
     private JwtGenerator jwtGenerator;
 
+    private LoggerService loggerService;
+
     @Autowired //tiêm phụ thuộc vào
     public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, RoleRepository roleRepository,
-            AuthenticationManager authenticationManager, JwtGenerator jwtGenerator) {
+            AuthenticationManager authenticationManager, JwtGenerator jwtGenerator, LoggerService loggerService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.roleRepository = roleRepository;
         this.authenticationManager = authenticationManager;
         this.jwtGenerator = jwtGenerator;
+        this.loggerService = loggerService;
     }
     public User getInfoByUsername(String username) {
         return userRepository.findByUsername(username).orElseThrow(() -> new NotFoundException("Không tồn tại user có username: "+username));
@@ -139,5 +143,33 @@ public class UserService {
     public void deleteById(Integer id,Integer userId) {
 
     }
+    public void updateById(Integer id, Integer userId,User user) {
+        User user2 = userRepository.findById(id).orElseThrow(() -> new NotFoundException("Không tồn tại người dùng này"));
+        user2.setStatus(user.getStatus());
+        String trangThai = user.getStatus() ? "Hoạt động": "Khóa";
+        addLogger(userId,"- Cập nhật trạng thái tài khoản \""+user2.getUsername()+"\" thành "+trangThai);
+        userRepository.save(user2);
+    }
+    private void addLogger(Integer userId,String content) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Không tồn tại người dùng "));
+        String roleName = new String();
+            boolean lastElement = false;
 
+            // Lặp qua các role
+            for (int i = 0; i < user.getRoles().size(); i++) {
+                Role r = user.getRoles().get(i);
+                roleName += r.getName();
+                
+                // Kiểm tra nếu phần tử hiện tại là phần tử cuối cùng
+                if (i == user.getRoles().size() - 1) {
+                    lastElement = true;
+                }
+                
+                // Nếu không phải phần tử cuối cùng, thêm dấu phẩy
+                if (!lastElement) {
+                    roleName += " ,";
+                }
+            }
+        loggerService.addLogger(user,content,roleName);
+    }
 }

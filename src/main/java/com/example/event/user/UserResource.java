@@ -91,5 +91,10 @@ public class UserResource {
         userService.deleteById(id,userId);
         return ResponseEntity.noContent().build();
     }   
+    @PatchMapping("{id}/user/{userId}")
+    public ResponseEntity<Void> updateById(@PathVariable Integer id,@PathVariable Integer userId,@RequestBody User user) {
+        userService.updateById(id,userId,user);
+        return ResponseEntity.noContent().build();
+    }
 
 }

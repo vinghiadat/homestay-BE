@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -48,10 +49,15 @@ public class RegistrationResource {
     }
     //Hàm lấy đăng ký của khách hàng show cho admin xem , sắp xếp theo ngày đăng ký và đồng thời có thể lọc theo sự kiện hoặc tên khách hàng cụ thể
     @GetMapping("order-by-registration-date/filter")
-    public ResponseEntity<List<RegistrationResponseDTO>> getAllRegistrationByFilter(
+    public ResponseEntity<List<Registration>> getAllRegistrationByFilter(
         @RequestParam(required = false) Integer eventId,
         @RequestParam(required = false) String userFullname
     ) {
         return ResponseEntity.status(HttpStatus.OK).body(registrationService.getAllRegistrationByFilter(eventId,userFullname));
+    }
+    @PatchMapping("/{id}/user/{userId}")
+    public ResponseEntity<Void> updateById(@PathVariable Integer id,@PathVariable Integer userId,@RequestBody Registration registration) {
+        registrationService.updateById(id,userId,registration);
+        return ResponseEntity.noContent().build();
     }
 }

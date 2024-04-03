@@ -13,12 +13,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.example.event.email.Email;
+import com.example.event.email.EmailService;
 import com.example.event.event.Event;
 import com.example.event.event.EventRepository;
 import com.example.event.event.EventStatus;
 import com.example.event.exception.AlreadyExistsException;
 import com.example.event.exception.InvalidValueException;
 import com.example.event.exception.NotFoundException;
+import com.example.event.logger.LoggerService;
+import com.example.event.organizer.Organizer;
+import com.example.event.organizer.OrganizerRepository;
+import com.example.event.role.Role;
 import com.example.event.user.User;
 import com.example.event.user.UserRepository;
 
@@ -29,12 +35,18 @@ public class RegistrationService {
     private RegistrationRepository registrationRepository;
     private EventRepository eventRepository;
     private UserRepository userRepository;
+    private LoggerService loggerService;
+    private EmailService emailService;
+    private OrganizerRepository organizerRepository;
     @Autowired
     public RegistrationService(RegistrationRepository registrationRepository, EventRepository eventRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository, LoggerService loggerService, EmailService emailService,OrganizerRepository organizerRepository) {
         this.registrationRepository = registrationRepository;
         this.eventRepository = eventRepository;
         this.userRepository = userRepository;
+        this.loggerService = loggerService;
+        this.emailService = emailService;
+        this.organizerRepository = organizerRepository;
     }
 
     // Phương thức kiểm tra event có hợp lệ không
@@ -89,6 +101,7 @@ public class RegistrationService {
         Integer eventId = registration.getEvent().getId();
         User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Không tồn tại user với id: "+registration.getUsers().getId()));
         Event event = eventRepository.findById(eventId).orElseThrow(() -> new NotFoundException("Không tồn tại sự kiện với id: "+registration.getEvent().getId()));
+        Organizer organizer = organizerRepository.findById(event.getOrganizer().getId()).orElseThrow(() -> new NotFoundException("Không tồn tại nhà tổ chức này"));
         // Viết code thực hiện đăng ký người dùng cho sự kiện
         if(!user.getStatus()) {
             throw new InvalidValueException("Không đăng ký được sự kiện. Tài khoản của bạn đã bị khóa");
@@ -118,6 +131,10 @@ public class RegistrationService {
         event.setTotalRegistered(event.getTotalRegistered()+1);
         eventRepository.save(event);
         registrationRepository.save(registration);
+        Email email = new Email();
+        email.setSubject("THÔNG BÁO ĐĂNG KÝ SỰ KIỆN THÀNH CÔNG");
+        email.setToEmail(user.getEmail());
+        emailService.sendEmail(email, user, event, organizer);
         
     }
     public List<Event> getEventByUserId( Integer userId,
@@ -159,7 +176,7 @@ public class RegistrationService {
     public Registration getRegistrationByUserIdAndEventId(Integer userId,Integer eventId) {
         return registrationRepository.findByUsersIdAndEventId(userId, eventId);
     }
-    public List<RegistrationResponseDTO> getAllRegistrationByFilter(
+    public List<Registration> getAllRegistrationByFilter(
         Integer eventId,
        String userFullname
     ) {
@@ -167,18 +184,13 @@ public class RegistrationService {
        List<Registration> registrations = registrationRepository.findAll();
        //Lấy user theo userFullname
        if(userFullname!=null) {
-            List<User> users = userRepository.findByFullname(userFullname);
-            if(!users.isEmpty()) {
-                for (User user : users) {
-                    registrations.removeIf(r ->  r.getUsers().getId()!=user.getId());
-                }
-                
-            }
+            registrations = registrationRepository.findByUsers_FullnameContainingOrUsers_UsernameContaining(userFullname, userFullname);
+            
        }
        if(eventId!=null) {
             registrations.removeIf(r -> r.getEvent().getId()!=eventId);
        }
-       return convertListRegistrationToListRegistrationResponseDTO(registrations);
+       return registrations;
        
     }
     private List<RegistrationResponseDTO> convertListRegistrationToListRegistrationResponseDTO(List<Registration> registrations) {
@@ -200,5 +212,35 @@ public class RegistrationService {
             registrationResponseDTO.setStatus(r.getStatus());
         }
         return registrationResponseDTOs;
+    }
+    public void updateById(Integer id,Integer userId,Registration registration) {
+        Registration r = registrationRepository.findById(id).orElseThrow(() -> new NotFoundException("Không tồn tại bản đăng ký này"));
+        User user = userRepository.findById(r.getUsers().getId()).orElseThrow(() -> new NotFoundException("Không tồn tại người dùng đăng ký bản này"));
+        Event e = eventRepository.findById(r.getEvent().getId()).orElseThrow(() -> new NotFoundException("Không tồn tại sự kiện này"));
+        r.setStatus(registration.getStatus());
+        String message = r.getStatus() != 0 ? (r.getStatus() == 1 ? "Đã xác nhận tham gia" : "Không tham gia đúng hạn") : "Chưa xử lý"; 
+        addLogger(userId, "- Cập nhật trạng thái đăng ký sự kiện \""+e.getEventName()+"\" của tài khoản \""+user.getUsername()+"\" thành \""+message+"\"");
+    }
+    private void addLogger(Integer userId,String content) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Không tồn tại user "));
+        String roleName = new String();
+            boolean lastElement = false;
+
+            // Lặp qua các role
+            for (int i = 0; i < user.getRoles().size(); i++) {
+                Role r = user.getRoles().get(i);
+                roleName += r.getName();
+                
+                // Kiểm tra nếu phần tử hiện tại là phần tử cuối cùng
+                if (i == user.getRoles().size() - 1) {
+                    lastElement = true;
+                }
+                
+                // Nếu không phải phần tử cuối cùng, thêm dấu phẩy
+                if (!lastElement) {
+                    roleName += " ,";
+                }
+            }
+        loggerService.addLogger(user,content,roleName);
     }
 }

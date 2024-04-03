@@ -20,4 +20,5 @@ public interface RegistrationRepository extends JpaRepository<Registration, Inte
     Integer existsRegistrationWithSameDate(@Param("userId") Integer userId,@Param("newStartDateTime") LocalDateTime newStartDateTime, @Param("newEndDateTime") LocalDateTime newEndDateTime);
     Registration findByUsersIdAndEventId(Integer userId, Integer eventId);
     Boolean existsByEventId(Integer eventId);
+    List<Registration> findByUsers_FullnameContainingOrUsers_UsernameContaining(String fullname, String username);
 }
