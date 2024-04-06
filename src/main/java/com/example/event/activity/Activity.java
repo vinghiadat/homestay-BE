@@ -32,7 +32,6 @@ public class Activity {
     private Event event;
     @NotBlank(message = "Không được bỏ trống tên hoạt động")
     private String activityName;
-    @NotBlank(message = "Không được bỏ trống mô tả")
     private String description;
     private String img;
     @NotNull(message = "Không được bỏ trống giờ hoạt động")

@@ -2,6 +2,7 @@ package com.example.event.activity;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,20 +38,24 @@ public class ActivityService {
     @Autowired
     private LoggerService loggerService;
     
-    public List<Activity> findByEventId(@PathVariable Integer eventId) {
+    public List<Activity> findByEventId( Integer eventId, String activityName) {
         // Gọi phương thức findByEventId trong ActivityRepository để lấy danh sách hoạt động theo eventId
-        return activityRepository.findByEventIdOrderByDateTimeAsc(eventId);
+        List<Activity> activities = activityRepository.findByEventIdOrderByDateTimeAsc(eventId);
+        if(activityName !=null)
+            activities.removeIf((a) -> !a.getActivityName().contains(activityName));
+        return activities;
     }
-     public List<Activity> findByEventIdAndDate(Integer eventId, LocalDateTime date) {
-        return activityRepository.findByEventIdAndDateTimeOrderByDateTimeAsc(eventId, date);
+     public List<Activity> findByEventIdAndDate(Integer eventId, LocalDate date) {
+        return activityRepository.findByEventIdAndDate(eventId, date);
     }
     public void addActivity(Activity activity,
     Integer userId) {
         Event e = eventRepository.findById(activity.getEvent().getId()).orElseThrow(() -> new NotFoundException("Không tồn tại sự kiện phù hợp với hoạt động này"));
         // Kiểm tra xem thời gian hoạt động có nằm trong khoảng thời gian của sự kiện không
         LocalDateTime activityDateTime = activity.getDateTime();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy");
         if (activityDateTime.isBefore(e.getStartDateTime()) || activityDateTime.isAfter(e.getEndDateTime())) {
-            throw new InvalidValueException("Thời gian hoạt động không nằm trong khoảng thời gian của sự kiện");
+            throw new InvalidValueException("Thời gian của hoạt đồng phải từ "+e.getStartDateTime().format(formatter)+" đến "+e.getEndDateTime().format(formatter));
         }
         // Kiểm tra xem có hoạt động nào khác cùng thời gian không
         List<Activity> conflictingActivities = activityRepository.findByDateTimeAndEventId(activityDateTime,e.getId());

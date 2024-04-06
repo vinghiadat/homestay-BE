@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
@@ -30,14 +31,14 @@ public class ActivityResource {
     
     
     @GetMapping("/{eventId}")
-    public ResponseEntity<List<Activity>> getByEventId(@PathVariable Integer eventId) {
+    public ResponseEntity<List<Activity>> getByEventId(@PathVariable Integer eventId, @RequestParam(required = false) String activityName) {
         // Gọi phương thức findByEventId trong ActivityRepository để lấy danh sách hoạt động theo eventId
-        return ResponseEntity.status(HttpStatus.OK).body(activityService.findByEventId(eventId));
+        return ResponseEntity.status(HttpStatus.OK).body(activityService.findByEventId(eventId,activityName));
     }
     @GetMapping("/event/{eventId}/date/{date}")
-    public ResponseEntity<List<Activity>> getByEventIdAndDate(@PathVariable Integer eventId, @PathVariable String dateTime) {
+    public ResponseEntity<List<Activity>> getByEventIdAndDate(@PathVariable Integer eventId, @PathVariable String date) {
         // Chuyển đổi chuỗi ngày thành đối tượng LocalDate
-        LocalDateTime localDate = LocalDateTime.parse(dateTime);
+        LocalDate localDate = LocalDate.parse(date);
 
         // Gọi phương thức findByEventIdAndDate trong ActivityService để lấy danh sách hoạt động theo eventId và date
         return ResponseEntity.status(HttpStatus.OK).body(activityService.findByEventIdAndDate(eventId, localDate));
