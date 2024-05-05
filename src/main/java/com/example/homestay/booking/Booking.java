@@ -12,6 +12,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -26,12 +27,26 @@ public class Booking {
     private Integer id;
     @ManyToOne
     @JoinColumn(name = "room_id", nullable = false)
+    @NotNull(message = "Vui lòng chọn phòng")
     private Room room;
     private LocalDate registrationDate = LocalDate.now();
+    @NotNull(message = "Vui lòng nhập ngày bắt đầu")
     private LocalDateTime startDateTime;
+    @NotNull(message = "Vui lòng nhập ngày kết thúc")
     private LocalDateTime endDateTime;
+    private Float price;
+    /*
+     * 0 là chưa xử lý
+     * -1 đã hủy
+     * 1 xác nhận
+     * 2 đã thanh toán
+     */
     private Integer status = 0;
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    private String paymentMethod;
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "user_id")
     private User users;
+    private String fullname;
+    private String phoneNumber;
+    private String email;
 }

@@ -152,7 +152,7 @@ public class EmailService {
                     "                ><em\r\n" + //
                     "                  >&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<u>Lưu ý:</u></em\r\n" + //
                     "                ></strong\r\n" + //
-                    "              >&nbsp;Nếu không tham gia đúng thời hạn đăng ký, bạn sẽ bị <em\r\n" + //
+                    "              >&nbsp;Nếu không lại nhận phòng đúng thời hạn đăng ký, bạn sẽ bị <em\r\n" + //
                     "                ><b>KHÓA TÀI KHOẢN</b></em\r\n" + //
                     "              >&nbsp;, và không thể đăng ký ở các homestay khác.<strong\r\n" + //
                     "                >&nbsp;</strong\r\n" + //
@@ -197,7 +197,7 @@ public class EmailService {
                     "        </div>\r\n" + //
                     "      </div>\r\n" + //
                     "      <div class=\"footer\">\r\n" + //
-                    "        <p>Homestay TheEvent</p>\r\n" + //
+                    "        <p>Homestay</p>\r\n" + //
                     "        <p>Cung cấp dịch vụ trải nghiệm tuyệt vời</p>\r\n" + //
                     "        <p>\r\n" + //
                     "          Điện thoại Văn phòng: 0292.3872275 - Điện thoại di động: 0975 185 994\r\n" + //

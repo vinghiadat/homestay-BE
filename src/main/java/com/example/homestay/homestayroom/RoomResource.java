@@ -1,7 +1,9 @@
 package com.example.homestay.homestayroom;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -43,16 +45,19 @@ public class RoomResource {
     public ResponseEntity<List<Room>> getRoomsByMaxQuantityAndTypeIdAndName(
         @RequestParam(required = false) Integer maxQuantity,
         @RequestParam(required = false) Integer typeId,
-        @RequestParam(required = false) String roomName
+        @RequestParam(required = false) String roomName,
+        @RequestParam(required = false) String price,
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDateTime,
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDateTime
     ) {
-        return ResponseEntity.status(HttpStatus.OK).body(roomService.getRoomsByMaxQuantityAndTypeIdAndName(maxQuantity,typeId,roomName));
+        return ResponseEntity.status(HttpStatus.OK).body(roomService.getRoomsByMaxQuantityAndTypeIdAndName(maxQuantity,typeId,roomName,price, startDateTime, endDateTime));
     }
     @GetMapping("/by-type-excluding")
     public ResponseEntity<List<Room>> getRoomsByTypeIdExcludingRoomId(@RequestParam Integer typeId, @RequestParam Integer roomId) {
         return ResponseEntity.status(HttpStatus.OK).body(roomService.getRoomsByTypeIdExcludingRoomId(typeId, roomId));
     }
     @PostMapping("/user/{userId}")
-    public ResponseEntity<Void> addRoom(@Valid @RequestBody Room room,
+    public ResponseEntity<Void> addRoom(@Valid @RequestBody RoomRequestDTO room,
     @PathVariable Integer userId) {
         
         roomService.addRoom(room,userId);
@@ -60,15 +65,16 @@ public class RoomResource {
     }
     //Cập nhật có 2 loại PUT & PATCH
     @PatchMapping("/{id}/user/{userId}")
-    public ResponseEntity<Void> updateRoomById(@PathVariable Integer id,@PathVariable Integer userId,@Valid @RequestBody Room room) {
+    public ResponseEntity<Void> updateRoomById(@PathVariable Integer id,@PathVariable Integer userId,@Valid @RequestBody RoomRequestDTO room) {
         roomService.updateRoomById(id,userId,room);
         return ResponseEntity.noContent().build();
     }
-    // @DeleteMapping("/{id}/user/{userId}")
-    // public ResponseEntity<Void> deleteRoomById(@PathVariable Integer id,@PathVariable Integer userId) {
-    //     roomService.deleteRoomById(id,userId);
-    //     return ResponseEntity.noContent().build();
-    // }
+    @DeleteMapping("/{id}/user/{userId}")
+    public ResponseEntity<Void> deleteRoomById(@PathVariable Integer id,@PathVariable Integer userId) {
+        roomService.deleteRoomById(id,userId);
+        return ResponseEntity.noContent().build();
+    }
+    
     
 
 }
